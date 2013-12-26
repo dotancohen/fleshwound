@@ -1,5 +1,24 @@
 #!/usr/bin/python3
 
+"""
+
+Python script for finding PHP vulnerabilities and coding errors.
+
+
+TODO
+
+
+KNOWN ISSUES
+
+Only supports variable assignment on a single line.
+Only supports function declaration on a single line.
+
+
+@author     Dotan Cohen
+@version    2013-12-26
+
+"""
+
 import os
 import re
 import shutil
