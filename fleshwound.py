@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import re
 import shutil
 import sys
 
@@ -13,25 +14,54 @@ files_to_avoid = []
 
 
 
-def parse_file(f):
+def parse_file(filename):
 
-	input = open(f, 'r')
-	""" Not using try yet to learn about possible exceptions
+	defined_variables = ['$_GET', '$_POST', '$_REQUEST', '$_SERVER', '$argv']
+	variable_match = re.compile('(\$[\w]+\s*={0,3})')
+
 	try:
-		input = open(f, 'r')
+		input = open(filename, 'r')
 	except Exception as e:
-		pass
-
+		print("\nFile could not be opened: %s\n%s" % (filename, e))
+		"""
 		IOError: [Errno 2] No such file or directory: 'index']
 		Thrown when trying to parse file that does not exits ('index' instead of '.git/index')
 
-	"""
+		Got some utf8 error when parsing a binary file
+		"""
 
-	for l in input:
-		if '_GET' in l:
-			print("\n%s" % (f,))
-			print("Found _GET!")
-			print(l)
+
+
+	for line in input:
+		print(line.strip())
+		try:
+			matches = variable_match.search(line)
+			#pprint(matches.groups())
+			for found_var in matches.groups():
+
+				if found_var.strip('=\t ') in defined_variables:
+					continue
+
+				if found_var.endswith('=='):
+					print("!!!!!!!!!!!!!!!!!! Use of undefined var: %s" % (found_var.strip('=\t '),))
+					continue
+
+				if found_var.endswith('='):
+					defined_variables.append(found_var[:-1].strip())
+					continue
+
+				print("!!!!!!!!!!!!!!!!!! Use of undefined var: %s" % (found_var,))
+
+		except AttributeError as e:
+			# AttributeError: 'NoneType' object has no attribute 'groups'
+			pass
+
+	"""
+		Add: Find variables defined in function parameters
+		Add: Find multiple variables per line
+		Add: Create a new stack when going into a function declaration
+
+	"""
 
 	input.close()
 
