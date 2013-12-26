@@ -12,6 +12,8 @@ KNOWN ISSUES
 
 Only supports variable assignment on a single line.
 Only supports function declaration on a single line.
+Does not support code outside functions after function declarations start.
+Does not support variables defined in include()ed or require()ed files.
 
 
 @author     Dotan Cohen
@@ -35,8 +37,12 @@ files_to_avoid = []
 
 def parse_file(filename):
 
-	defined_variables = ['$_GET', '$_POST', '$_REQUEST', '$_SERVER', '$argv']
 	variable_match = re.compile('(\$[\w]+\s*={0,3})')
+	original_defined_variables = ['$_GET', '$_POST', '$_REQUEST', '$_SERVER', '$argv']
+	defined_variables = original_defined_variables[:]
+	defined_variables_stack = []
+	line_number = 0
+	printedFilename = False
 
 	try:
 		input = open(filename, 'r')
@@ -52,28 +58,39 @@ def parse_file(filename):
 
 
 	for line in input:
-		print(line.strip())
+		line_number +=1
+
+		inFunctionDeclaration = False
+
+		#if re.search('\s*(static)?\s*(public)?\s*(static)?\s*function\s*[\w]*\s*\(', line):
+		if re.search('\s*function\s*[\w]*\s*\(', line):
+			inFunctionDeclaration = True
+			defined_variables = original_defined_variables[:]
+
 		try:
 			matches = variable_match.search(line)
-			#pprint(matches.groups())
 			for found_var in matches.groups():
+
+				if inFunctionDeclaration:
+					defined_variables.append(found_var.strip('=\t '))
+					continue
+
+				if re.search('^\s*global\s*', line):
+					defined_variables.append(found_var.strip('=\t '))
+					continue
 
 				if found_var.strip('=\t ') in defined_variables:
 					continue
 
 				if found_var.endswith('=='):
-					print("!!!!!!!!!!!!!!!!!! Use of undefined var: %s" % (found_var.strip('=\t '),))
+					printedFilename = print_error_line(found_var, line, line_number, filename, printedFilename)
 					continue
 
 				if found_var.endswith('='):
 					defined_variables.append(found_var[:-1].strip())
 					continue
 
-				if 'function' in line:
-					defined_variables.append(found_var.strip())
-					continue
-
-				print("!!!!!!!!!!!!!!!!!! Use of undefined var: %s" % (found_var,))
+				printedFilename = print_error_line(found_var, line, line_number, filename, printedFilename)
 
 		except AttributeError as e:
 			# AttributeError: 'NoneType' object has no attribute 'groups'
@@ -86,6 +103,20 @@ def parse_file(filename):
 	"""
 
 	input.close()
+
+	return True
+
+
+
+def print_error_line(found_var, line, line_number, filename, printedFilename):
+
+	found_var = found_var.strip('=\t ')
+
+	if not printedFilename:
+		print("\n\n - File:   %s\n\n" % (filename,))
+
+	print("Use of undefined var: %s on line %i" % (found_var, line_number,))
+	print(line)
 
 	return True
 
