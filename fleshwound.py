@@ -69,6 +69,10 @@ def parse_file(filename):
 					defined_variables.append(found_var[:-1].strip())
 					continue
 
+				if 'function' in line:
+					defined_variables.append(found_var.strip())
+					continue
+
 				print("!!!!!!!!!!!!!!!!!! Use of undefined var: %s" % (found_var,))
 
 		except AttributeError as e:
@@ -76,7 +80,6 @@ def parse_file(filename):
 			pass
 
 	"""
-		Add: Find variables defined in function parameters
 		Add: Find multiple variables per line
 		Add: Create a new stack when going into a function declaration
 
