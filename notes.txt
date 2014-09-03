@@ -1,0 +1,24 @@
+http://codereview.stackexchange.com/questions/13876/python-flatten-directories
+
+http://stackoverflow.com/questions/3115559/exploitable-php-functions
+
+
+https://www.google.com/search?q=common+PHP+pitfalls
+
+
+
+// Strings to grep for to find compromised files
+
+eval
+create_function
+base64_decode
+@include
+file_get_contents
+document.cookie
+document.write
+google
+Thumbs.db
+@$
+@!
+@_
+(Last three from http://blog.omfgitsasalmon.com/)
