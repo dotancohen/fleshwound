@@ -18,6 +18,7 @@ document.cookie
 document.write
 google
 Thumbs.db
+grep -rP "(?:\\\\x[A-F0-9]{2}){2}" *
 @$
 @!
 @_
